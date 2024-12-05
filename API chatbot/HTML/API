@@ -1,0 +1,38 @@
+from flask import Flask, request, jsonify, render_template
+import openai
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configure OpenAI API key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+# Default route to serve index.html
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# API route to handle POST request and send it to OpenAI API
+@app.route('/api', methods=['POST'])
+def api():
+    data = request.get_json()
+    user_message = data.get('message')
+
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    try:
+        # Send message to OpenAI API
+        response = openai.Completion.create(
+            model="text-davinci-003",  # Specify model, e.g., text-davinci-003
+            prompt=user_message,
+            max_tokens=100
+        )
+        reply = response.choices[0].text.strip()
+        return jsonify({"response": reply})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
